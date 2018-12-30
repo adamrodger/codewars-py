@@ -5,11 +5,25 @@ import re
 
 def calculateClusters(samples):
     """
-    Group the samples into 3 clusters and return a dict of cluster mean to samples in the cluster
+    Group the samples into up to 3 clusters and return a dict of cluster
+    mean to samples in the cluster
     """
     # assign the samples to a cluster then move the cluster towards the mean of the samples
     converged = False
-    clusters = { 1.0: [], 5.5: [], 11.0: [] }
+
+    # randomly seed the appropriate number of clusters
+    unique_lengths = set([len(x) for x in samples])
+    cluster_count = min(3, len(unique_lengths))
+
+    if cluster_count == 1:
+        # everything is the same length
+        return { len(samples[0]): samples }
+    elif cluster_count == 2:
+        # just start at the extremes and work inwards
+        clusters = { min(unique_lengths): [], max(unique_lengths): []}
+    else:
+        # start clusters at min, average and max lengths
+        clusters = { min(unique_lengths): [], sum(unique_lengths) / len(unique_lengths): [], max(unique_lengths): []}
     
     while not converged:
         converged = True
@@ -32,7 +46,10 @@ def calculateClusters(samples):
         moved_clusters = {}
 
         for centroid, members in clusters.items():
-            mean = sum([len(x) for x in members]) / len(members)
+            if not members:
+                continue # drop this cluster
+
+            mean = float(sum([len(x) for x in members])) / float(len(members)) # python 2.x support
             moved_clusters[mean] = []
             if mean != centroid:
                 converged = False
@@ -49,6 +66,10 @@ def decodeBitsAdvanced(bits):
     """
 
     bits = bits.strip("0")
+
+    if not bits:
+        return ""
+    
     samples = re.findall("1+|0+", bits)
     clusters = calculateClusters(samples)
 
@@ -63,7 +84,7 @@ def decodeBitsAdvanced(bits):
         elif sample in clusters[thresholds[1]]:
             result += "-" if sample[0] == "1" else " "
         elif sample in clusters[thresholds[2]]:
-            result += "   "
+            result += "-" if sample[0] == "1" else "   "
         else:
             raise ValueError("Unknown cluster for sample {}".format(sample))
 

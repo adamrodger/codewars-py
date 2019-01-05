@@ -9,7 +9,7 @@
         "**/__init__.py": true
     },
 
-    "python.pythonPath": "/home/adam/.virtualenvs/temp/bin/python",
+    "python.pythonPath": ".venv/bin/python",
 
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
